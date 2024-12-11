@@ -12,116 +12,6 @@ Other "Using AWS CDK" series can be found in:
 - [AWS IoT Greengrass Ver2 Using AWS CDK](https://github.com/aws-samples/aws-iot-greengrass-v2-using-aws-cdk)
 - [AWS Serverless Using AWS CDK](https://github.com/aws-samples/aws-serverless-using-aws-cdk)
 
-## Contents
-
-1. [**Repository structure**](#repository-structure)
-
-2. [**Solution coverage**](#solution-coverage)
-  
-3. [**Solution approach**](#solution-approach)
-
-4. [**Solution architecture**](#solution-architecture)
-
-5. [**How to prepare ML model**](#how-to-prepare-ml-model)
-
-6. [**How to deploy**](#how-to-deploy)
-
-    - [**Prerequisites**](#prerequisites)
-    - [**How to set up**](#how-to-set-up)
-    - [**How to provision**](#how-to-provision)
-
-7. [**How to test**](#how-to-test)
-
-8. [**How to monitor**](#how-to-monitor)
-
-9. [**How to change model and endpoint configration**](#how-to-change-model-and-endpoint-configration)
-
-10. [**How to set up auto-scaling**](#how-to-set-up-auto-scaling)
-
-11. [**How to add model-b**](#how-to-add-model-b)
-
-12. [**How to configure Logging-Path**](#how-to-configure-logging-path)
-
-13. [**About CDK-Project**](#about-cdk-project)
-
-14. [**How to clean up**](#how-to-clean-up)
-
-15. [**Security**](#security)
-
-16. [**License**](#license)
-
-## **Repository structure**
-
-This repository is basically a CDK-Project, but it is organized as follows so that MLDevOps(ML Scientist + SW Developer + Infra Operator) can collaborate.
-
-- bin/stack directory: for Infra Operator
-- codes/lambda directory: for SW Developer
-- models/model-a: for ML Scientist
-- config/app-config.json: a place where all developer(MLDevOps) can collaborate, ***Configuration Driven Development*** approach can coordinate each other's interfaces through configuration.
-
-![ProjectStructure](docs/asset/project_structure.png)
-
-## **Solution coverage**
-
-When considering AI/ML services development & operation (DevOps), there are various considerations other than model serving. For example, A/B testing, monitoring, data collection, etc. should be considered together for continuous service improvement. To meet these considerations, this solution covers the areas highlighted in the figure below.
-
-- Model Deployment: Models Archiving, Multiple Models Serving, Realtime Prediction
-- Monitoring & Debugging: Endpoint Testing, Resource Monitoring
-- Data Collection: Inference History Logging
-
-![MacineLearningWorkflowRoI](docs/asset/machinelearning_workflow_roi.png)
-
-## **Solution approach**
-
-In order to agile development and operation of such complex **AI/ML services**, we approach from [**Application Modernization**](https://aws.amazon.com/modern-apps) perspective, which can be summarized into features such as:
-
-- Application Architecture: Modular Microservices
-- Software Delivery: Automation, Abstraction, & Standardization
-- Data Strategy: Decoupled & Purpose Built
-- Operations: As Serverless as Possible
-- Management & Governance: Programmatic Guardrails
-
-Finally, we can design the architecture by placing the following services in the right place.
-
-- Application Architecture: as small as possible and divide it into the multiple stacks
-- Software Delivery: CICD-based and IaC-based automation deploy
-- Data Strategy: individual storage selection for each logging purpose
-- Operations: only serverless and container
-- Management & Governance: monitoring & testing
-
-![MacineLearningWorkflowServices](docs/asset/machinelearning_workflow_services.png)
-
-## **Solution architecture**
-
-Basically this architecture is designed to provide a realtime endpoint using ML models. In this architecture, ***Application Modernization*** approach was applied to develop and operate agile and stable services.
-
-![SolutionArchitecture](docs/asset/solution_architecture.png)
-
-Each stack provides the follwing functions. In particular, the common functions of each stack are provided through ***BaseStack*** class by utilizing the characteristics of an object-oriented programming. Parameters such as resource name/ARN are shared between each stack through ***Parameter Store*** in AWS Systems Manager.
-
-- Model Archiving Stack: Model Bucket Creation, model.tar.gz file Uploading
-- Model Serving Stack: Models Loading, Multiple Models(A/B Testing) Serving, Inference Input/Output Logging
-- API Hosting Stack: Serverless API Endpoint & Http Request Handling
-- Monitor Dashboard: Serverless Resource Monitoring & Alarm
-- CICD Pipeline: Continuous Integration & Continuous Deploy
-- API Testing: Serverless Tester Agent
-- Tester Dashboard: Testing State Monitoring
-
-![StackDependency](docs/asset/stack_dependency.png)
-
-AWS services used are as follows:
-
-- [Amazon SageMaker](https://aws.amazon.com/sagemaker): the most comprehensive ML service, which helps data scientists and developers to prepare, build, train, and deploy high-quality machine learning(ML) models quickly by bringing together a broad set of capabilities purpose-built for ML
-- [Amazon API Gateway](https://aws.amazon.com/api-gateway): a fully managed service that makes it easy for developers to create, publish, maintain, monitor, and secure APIs at any scale
-- [Amazon Simple Storage Service(S3)](https://aws.amazon.com/s3): object storage built to store and retrieve any amount of data from anywhere
-- [Amazon Lambda](https://aws.amazon.com/lambda): a serverless computing which run code without thinking about servers
-- [Amazon Simple Notification Service(SNS)](https://aws.amazon.com/sns): a fully managed messaging service for both application-to-application (A2A) and application-to-person (A2P) communication
-- [Amazon Simple Email Service(SES)](https://aws.amazon.com/ses): a cost-effective, flexible, and scalable email service that enables developers to send mail from within any application
-- [Amazon CloudWatch](https://aws.amazon.com/cloudwatch): a monitoring and observability service built for DevOps engineers, developers, site reliability engineers (SREs), and IT managers
-- [Amazon System Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html): secure, hierarchical storage for configuration data management and secrets management
-- [AWS CodePipeline](https://aws.amazon.com/codepipeline): a fully managed continuous delivery service that helps you automate your release pipelines for fast and reliable application and infrastructure updates
-- [AWS CloudFormation](https://aws.amazon.com/cloudformation): an easy way to model a collection of related AWS and third-party resources, provision them quickly and consistently, and manage them throughout their lifecycles, by treating infrastructure as code
-- [AWS Cloud Development Kit(CDK)](https://aws.amazon.com/cdk): an open source software development framework to define your cloud application resources using familiar programming languages
 
 ## **How to prepare ML model**
 
@@ -134,8 +24,21 @@ In any directory, execute the following commands to train model and finally get 
 - 3: 'Business'
 - 4: 'Sci/Tech'
 
-If you are not ready for pytorch, please refer to this [installation guide](https://github.com/pytorch/text#installation). In this repository, pytorch version is 1.8.0, torchtext version is 0.9.0.
+If you are not ready for pytorch, please refer to this [installation guide](https://github.com/pytorch/text#installation). In this repository, pytorch version is 2.3.1, torchtext version is 0.18.0.
 
+##### **Note**: You can skip this if you don't want to train model from scratch. Must check the models.tar.gz file in the ./models/model-a/model directory.
+
+First install the following packages (Be aware to not mix the versions of pytorch and torchtext).
+```bash
+python -m venv venv
+source venv/bin/activate
+pip install torch==2.3.* torchtext==0.18.*
+```
+For further information checking the dependecies versions, please refer to [pytorch/text](https://github.com/pytorch/data).
+```bash
+pip install torchdata
+pip install datasets transformers
+```
 ```bash
 git clone https://github.com/pytorch/text.git torchtext  
 cd torchtext/examples/text_classification/  
@@ -301,6 +204,154 @@ Now, everything is ready, let's provision all stacks using AWS CDK. Execute the 
 sh script/deploy_stacks.sh
 ```
 
+---
+
+## How to Call the Inference Endpoint
+
+This documentation provides step-by-step instructions on how to call your SageMaker inference endpoint deployed via API Gateway using **curl**, **Postman**, and **Python**.
+
+However, you would like to understand the **model's output** (e.g., what the "label" corresponds to in terms of classification). Here's how you can interpret and enhance your setup:
+
+---
+
+## **1. Understand the Model's Output**
+The `label` in the response corresponds to the class predicted by your SageMaker model. Based on your earlier descriptions, your model is trained to classify text into one of four categories:
+
+| **Label** | **Category**       |
+|-----------|--------------------|
+| 1         | World              |
+| 2         | Sports             |
+| 3         | Business           |
+| 4         | Science/Technology |
+
+In this case, the response `{"label": 1}` means the input text was classified as **"World"**.
+
+---
+
+---
+
+### **1. Prerequisites**
+Before calling the endpoint, ensure the following:
+- The API Gateway is deployed and accessible.
+- You have the API Gateway URL (e.g., `https://lizwynp710.execute-api.us-east-1.amazonaws.com/MLDemo/text`).
+- The SageMaker endpoint is active and functioning correctly.
+- You have a valid input payload (e.g., `{"sentence": "Your input text here"}`).
+
+---
+
+### **2. Using `curl`**
+
+#### **Steps**
+1. Open a terminal.
+2. Use the following `curl` command to send a POST request to the API Gateway endpoint:
+
+```bash
+curl -X POST https://lizwynp710.execute-api.us-east-1.amazonaws.com/MLDemo/text \
+    -H "Content-Type: application/json" \
+    -d '{"sentence": "The new president has called for an emergency conference for international cooperation."}'
+```
+
+#### **Explanation**
+- `-X POST`: Specifies the HTTP method as POST.
+- `-H "Content-Type: application/json"`: Sets the content type as JSON.
+- `-d '{"sentence": "..."}'`: Sends the JSON payload in the request body.
+
+#### **Expected Response**
+You should receive a response similar to this:
+```json
+{
+    "success": "true",
+    "label": 1,
+    "MessageId": "de60b7b3-a772-4707-bcbe-41660950017a"
+}
+```
+
+---
+
+### **3. Using Postman**
+
+#### **Steps**
+1. Open Postman and create a new request.
+2. Set the request method to `POST`.
+3. Enter the URL:
+   ```
+   https://lizwynp710.execute-api.us-east-1.amazonaws.com/MLDemo/text
+   ```
+4. Go to the **Headers** tab and add:
+   - Key: `Content-Type`
+   - Value: `application/json`
+5. Go to the **Body** tab, select `raw`, and enter your JSON payload:
+   ```json
+   {
+       "sentence": "The new president has called for an emergency conference for international cooperation."
+   }
+   ```
+6. Click **Send**.
+
+#### **Expected Response**
+The response will appear in the Postman interface, similar to:
+```json
+{
+    "success": "true",
+    "label": 1,
+    "MessageId": "de60b7b3-a772-4707-bcbe-41660950017a"
+}
+```
+
+---
+
+### **4. Using Python**
+
+3. Run the script:
+   ```bash
+   python test_inference.py
+   ```
+
+#### **Expected Output**
+The script will print the response from the API Gateway:
+```bash
+Response: {'success': 'true', 'label': 1, 'MessageId': 'de60b7b3-a772-4707-bcbe-41660950017a'}
+```
+The script will print the response of batch testing script:
+```bash
+Test 1 Response: {'success': 'true', 'label': 1, 'MessageId': 'a69b1883-098e-41a5-b51b-86b5257cbd0c'}
+Test 2 Response: {'success': 'true', 'label': 2, 'MessageId': 'd1071d3f-6433-41fc-a557-b02eeca66898'}
+Test 3 Response: {'success': 'true', 'label': 3, 'MessageId': '75f172b9-ca94-47d2-ad01-57113ce88332'}
+Test 4 Response: {'success': 'true', 'label': 4, 'MessageId': 'a3ad2339-5cde-47ef-b943-a74f689a0d2f'}
+```
+
+---
+
+### **5. Interpreting Results**
+The response contains:
+- `"label"`: The predicted class label (e.g., `1`).
+- `"success"`: Indicates whether the prediction was successful (`true` or `false`).
+- `"MessageId"`: A unique identifier for the request.
+
+If you want to map labels to categories (e.g., `1 -> World`, `2 -> Sports`), you can enhance your Lambda function or interpret them in your client code.
+
+---
+
+### **6. Debugging Common Issues**
+
+### Error: Missing Authentication Token
+**Cause**: Incorrect URL or missing stage/resource path.
+**Solution**: Verify that your URL includes `/MLDemo/text`.
+
+### Error: 403 Forbidden
+**Cause**: Missing permissions or access restrictions.
+**Solution**: Ensure that your API Gateway does not require an API key or authentication unless configured.
+
+### Error: 500 Internal Server Error
+**Cause**: Issue with Lambda or SageMaker endpoint.
+**Solution**: Check CloudWatch logs for Lambda and SageMaker for debugging.
+
+---
+
+By following these steps, you can easily test your SageMaker inference endpoint using any of these methods!
+
+---
+
 ## **How to test**
 
 For testing, execute the following command, which will send SNS message and finally the lambda functions will be executed to call API Gateway.
@@ -341,6 +392,119 @@ And test duration(DurationInSec), and test interval(IntervalInSec) can be modifi
 ...
 ...
 ```
+
+## Contents
+
+1. [**Repository structure**](#repository-structure)
+
+2. [**Solution coverage**](#solution-coverage)
+  
+3. [**Solution approach**](#solution-approach)
+
+4. [**Solution architecture**](#solution-architecture)
+
+5. [**How to prepare ML model**](#how-to-prepare-ml-model)
+
+6. [**How to deploy**](#how-to-deploy)
+
+    - [**Prerequisites**](#prerequisites)
+    - [**How to set up**](#how-to-set-up)
+    - [**How to provision**](#how-to-provision)
+
+7. [**How to test**](#how-to-test)
+
+8. [**How to monitor**](#how-to-monitor)
+
+9. [**How to change model and endpoint configration**](#how-to-change-model-and-endpoint-configration)
+
+10. [**How to set up auto-scaling**](#how-to-set-up-auto-scaling)
+
+11. [**How to add model-b**](#how-to-add-model-b)
+
+12. [**How to configure Logging-Path**](#how-to-configure-logging-path)
+
+13. [**About CDK-Project**](#about-cdk-project)
+
+14. [**How to clean up**](#how-to-clean-up)
+
+15. [**Security**](#security)
+
+16. [**License**](#license)
+
+## **Repository structure**
+
+This repository is basically a CDK-Project, but it is organized as follows so that MLDevOps(ML Scientist + SW Developer + Infra Operator) can collaborate.
+
+- bin/stack directory: for Infra Operator
+- codes/lambda directory: for SW Developer
+- models/model-a: for ML Scientist
+- config/app-config.json: a place where all developer(MLDevOps) can collaborate, ***Configuration Driven Development*** approach can coordinate each other's interfaces through configuration.
+
+![ProjectStructure](docs/asset/project_structure.png)
+
+## **Solution coverage**
+
+When considering AI/ML services development & operation (DevOps), there are various considerations other than model serving. For example, A/B testing, monitoring, data collection, etc. should be considered together for continuous service improvement. To meet these considerations, this solution covers the areas highlighted in the figure below.
+
+- Model Deployment: Models Archiving, Multiple Models Serving, Realtime Prediction
+- Monitoring & Debugging: Endpoint Testing, Resource Monitoring
+- Data Collection: Inference History Logging
+
+![MacineLearningWorkflowRoI](docs/asset/machinelearning_workflow_roi.png)
+
+## **Solution approach**
+
+In order to agile development and operation of such complex **AI/ML services**, we approach from [**Application Modernization**](https://aws.amazon.com/modern-apps) perspective, which can be summarized into features such as:
+
+- Application Architecture: Modular Microservices
+- Software Delivery: Automation, Abstraction, & Standardization
+- Data Strategy: Decoupled & Purpose Built
+- Operations: As Serverless as Possible
+- Management & Governance: Programmatic Guardrails
+
+Finally, we can design the architecture by placing the following services in the right place.
+
+- Application Architecture: as small as possible and divide it into the multiple stacks
+- Software Delivery: CICD-based and IaC-based automation deploy
+- Data Strategy: individual storage selection for each logging purpose
+- Operations: only serverless and container
+- Management & Governance: monitoring & testing
+
+![MacineLearningWorkflowServices](docs/asset/machinelearning_workflow_services.png)
+
+## **Solution architecture**
+
+Basically this architecture is designed to provide a realtime endpoint using ML models. In this architecture, ***Application Modernization*** approach was applied to develop and operate agile and stable services.
+
+![SolutionArchitecture](docs/asset/solution_architecture.png)
+
+Each stack provides the follwing functions. In particular, the common functions of each stack are provided through ***BaseStack*** class by utilizing the characteristics of an object-oriented programming. Parameters such as resource name/ARN are shared between each stack through ***Parameter Store*** in AWS Systems Manager.
+
+- Model Archiving Stack: Model Bucket Creation, model.tar.gz file Uploading
+- Model Serving Stack: Models Loading, Multiple Models(A/B Testing) Serving, Inference Input/Output Logging
+- API Hosting Stack: Serverless API Endpoint & Http Request Handling
+- Monitor Dashboard: Serverless Resource Monitoring & Alarm
+- CICD Pipeline: Continuous Integration & Continuous Deploy
+- API Testing: Serverless Tester Agent
+- Tester Dashboard: Testing State Monitoring
+
+![StackDependency](docs/asset/stack_dependency.png)
+
+AWS services used are as follows:
+
+- [Amazon SageMaker](https://aws.amazon.com/sagemaker): the most comprehensive ML service, which helps data scientists and developers to prepare, build, train, and deploy high-quality machine learning(ML) models quickly by bringing together a broad set of capabilities purpose-built for ML
+- [Amazon API Gateway](https://aws.amazon.com/api-gateway): a fully managed service that makes it easy for developers to create, publish, maintain, monitor, and secure APIs at any scale
+- [Amazon Simple Storage Service(S3)](https://aws.amazon.com/s3): object storage built to store and retrieve any amount of data from anywhere
+- [Amazon Lambda](https://aws.amazon.com/lambda): a serverless computing which run code without thinking about servers
+- [Amazon Simple Notification Service(SNS)](https://aws.amazon.com/sns): a fully managed messaging service for both application-to-application (A2A) and application-to-person (A2P) communication
+- [Amazon Simple Email Service(SES)](https://aws.amazon.com/ses): a cost-effective, flexible, and scalable email service that enables developers to send mail from within any application
+- [Amazon CloudWatch](https://aws.amazon.com/cloudwatch): a monitoring and observability service built for DevOps engineers, developers, site reliability engineers (SREs), and IT managers
+- [Amazon System Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html): secure, hierarchical storage for configuration data management and secrets management
+- [AWS CodePipeline](https://aws.amazon.com/codepipeline): a fully managed continuous delivery service that helps you automate your release pipelines for fast and reliable application and infrastructure updates
+- [AWS CloudFormation](https://aws.amazon.com/cloudformation): an easy way to model a collection of related AWS and third-party resources, provision them quickly and consistently, and manage them throughout their lifecycles, by treating infrastructure as code
+- [AWS Cloud Development Kit(CDK)](https://aws.amazon.com/cdk): an open source software development framework to define your cloud application resources using familiar programming languages
+
+
 
 ## **How to monitor**
 
@@ -553,152 +717,6 @@ This picture is a result of multiple(A/B Testing) model serving in SageMaker.
 
 ![MultipleModelServing](docs/asset/sagemaker_model_config_endpoint.png)
 
-
-##
-
-## How to Call the Inference Endpoint
-
-This documentation provides step-by-step instructions on how to call your SageMaker inference endpoint deployed via API Gateway using **curl**, **Postman**, and **Python**.
-
-However, you would like to understand the **model's output** (e.g., what the "label" corresponds to in terms of classification). Here's how you can interpret and enhance your setup:
-
----
-
-## **1. Understand the Model's Output**
-The `label` in the response corresponds to the class predicted by your SageMaker model. Based on your earlier descriptions, your model is trained to classify text into one of four categories:
-
-| **Label** | **Category**       |
-|-----------|--------------------|
-| 1         | World              |
-| 2         | Sports             |
-| 3         | Business           |
-| 4         | Science/Technology |
-
-In this case, the response `{"label": 1}` means the input text was classified as **"World"**.
-
----
-
----
-
-### **1. Prerequisites**
-Before calling the endpoint, ensure the following:
-- The API Gateway is deployed and accessible.
-- You have the API Gateway URL (e.g., `https://lizwynp710.execute-api.us-east-1.amazonaws.com/MLDemo/text`).
-- The SageMaker endpoint is active and functioning correctly.
-- You have a valid input payload (e.g., `{"sentence": "Your input text here"}`).
-
----
-
-### **2. Using `curl`**
-
-#### **Steps**
-1. Open a terminal.
-2. Use the following `curl` command to send a POST request to the API Gateway endpoint:
-
-```bash
-curl -X POST https://lizwynp710.execute-api.us-east-1.amazonaws.com/MLDemo/text \
-    -H "Content-Type: application/json" \
-    -d '{"sentence": "The new president has called for an emergency conference for international cooperation."}'
-```
-
-#### **Explanation**
-- `-X POST`: Specifies the HTTP method as POST.
-- `-H "Content-Type: application/json"`: Sets the content type as JSON.
-- `-d '{"sentence": "..."}'`: Sends the JSON payload in the request body.
-
-#### **Expected Response**
-You should receive a response similar to this:
-```json
-{
-    "success": "true",
-    "label": 1,
-    "MessageId": "de60b7b3-a772-4707-bcbe-41660950017a"
-}
-```
-
----
-
-### **3. Using Postman**
-
-#### **Steps**
-1. Open Postman and create a new request.
-2. Set the request method to `POST`.
-3. Enter the URL:
-   ```
-   https://lizwynp710.execute-api.us-east-1.amazonaws.com/MLDemo/text
-   ```
-4. Go to the **Headers** tab and add:
-   - Key: `Content-Type`
-   - Value: `application/json`
-5. Go to the **Body** tab, select `raw`, and enter your JSON payload:
-   ```json
-   {
-       "sentence": "The new president has called for an emergency conference for international cooperation."
-   }
-   ```
-6. Click **Send**.
-
-#### **Expected Response**
-The response will appear in the Postman interface, similar to:
-```json
-{
-    "success": "true",
-    "label": 1,
-    "MessageId": "de60b7b3-a772-4707-bcbe-41660950017a"
-}
-```
-
----
-
-### **4. Using Python**
-
-3. Run the script:
-   ```bash
-   python test_inference.py
-   ```
-
-#### **Expected Output**
-The script will print the response from the API Gateway:
-```bash
-Response: {'success': 'true', 'label': 1, 'MessageId': 'de60b7b3-a772-4707-bcbe-41660950017a'}
-```
-The script will print the response of batch testing script:
-```bash
-Test 1 Response: {'success': 'true', 'label': 1, 'MessageId': 'a69b1883-098e-41a5-b51b-86b5257cbd0c'}
-Test 2 Response: {'success': 'true', 'label': 2, 'MessageId': 'd1071d3f-6433-41fc-a557-b02eeca66898'}
-Test 3 Response: {'success': 'true', 'label': 3, 'MessageId': '75f172b9-ca94-47d2-ad01-57113ce88332'}
-Test 4 Response: {'success': 'true', 'label': 4, 'MessageId': 'a3ad2339-5cde-47ef-b943-a74f689a0d2f'}
-```
-
----
-
-### **5. Interpreting Results**
-The response contains:
-- `"label"`: The predicted class label (e.g., `1`).
-- `"success"`: Indicates whether the prediction was successful (`true` or `false`).
-- `"MessageId"`: A unique identifier for the request.
-
-If you want to map labels to categories (e.g., `1 -> World`, `2 -> Sports`), you can enhance your Lambda function or interpret them in your client code.
-
----
-
-### **6. Debugging Common Issues**
-
-### Error: Missing Authentication Token
-**Cause**: Incorrect URL or missing stage/resource path.
-**Solution**: Verify that your URL includes `/MLDemo/text`.
-
-### Error: 403 Forbidden
-**Cause**: Missing permissions or access restrictions.
-**Solution**: Ensure that your API Gateway does not require an API key or authentication unless configured.
-
-### Error: 500 Internal Server Error
-**Cause**: Issue with Lambda or SageMaker endpoint.
-**Solution**: Check CloudWatch logs for Lambda and SageMaker for debugging.
-
----
-
-By following these steps, you can easily test your SageMaker inference endpoint using any of these methods!
 
 
 ## **About CDK-Project**
