@@ -39,12 +39,17 @@ For further information checking the dependecies versions, please refer to [pyto
 pip install torchdata
 pip install datasets transformers
 ```
+#### Training the Model
+
+To train the model just run these commands outside of the project directory.
 ```bash
 git clone https://github.com/pytorch/text.git torchtext  
 cd torchtext/examples/text_classification/  
 mkdir .data  
 python3 train.py AG_NEWS --device cpu --save-model-path  model.pth --dictionary vocab.pth  
 ```
+
+By running the above commands the model artifaces will create in `torchtext/examples/text_classification/` directory. 
 
 Finally copy model script(***model.py***) and training outputs(***model.pth***, ***vocab.pth***) into ***models/model-a/src*** directory of this repository.
 
@@ -95,6 +100,8 @@ python3 test_local_model.py
 [tc-004]: result==>{"success": "true", "label": 4}
 [tc-004]: completed==>The development of science accelerated the development of mankind.
 ```
+
+#### Compressing Trained Model Artifacts
 
 Finally compress these files to upload into Amazon S3. Execute the following command in root directory of this repository. This command will create ***model.tar.gz*** in "models/model-a/model", which will be uploaded to Amazon S3 through AWS CDK(***ModelArchivingStack***) later.
 
