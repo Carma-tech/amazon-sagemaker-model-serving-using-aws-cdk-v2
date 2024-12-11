@@ -39,7 +39,7 @@ For further information checking the dependecies versions, please refer to [pyto
 pip install torchdata
 pip install datasets transformers
 ```
-#### Training the Model
+### Training Model
 
 To train the model just run these commands outside of the project directory.
 ```bash
@@ -101,7 +101,7 @@ python3 test_local_model.py
 [tc-004]: completed==>The development of science accelerated the development of mankind.
 ```
 
-#### Compressing Trained Model Artifacts
+### Compressing Trained Model Artifacts
 
 Finally compress these files to upload into Amazon S3. Execute the following command in root directory of this repository. This command will create ***model.tar.gz*** in "models/model-a/model", which will be uploaded to Amazon S3 through AWS CDK(***ModelArchivingStack***) later.
 
