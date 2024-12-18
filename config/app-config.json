@@ -4,7 +4,7 @@
         "Stage": "MLDemo",
         "Account": "717918134056",
         "Region": "us-east-1",
-        "Profile": "testing"
+        "Profile": "default"
     },
 
     "Stack": {
@@ -28,15 +28,15 @@
 
             "ModelList": [
                 {
-                    "ModelName":   "Model-A-20210102a",
+                    "ModelName":   "Model-A-20241218a",
                     "ModelS3Key":     "models/model-a/model",
-                    "ModelDockerImage": "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker",
+                    "ModelDockerImage": "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-sagemaker",
                     "ModelDockerImage-Desc": "SageMaker Prebuilt Docker Images: https://github.com/aws/deep-learning-containers/blob/master/available_images.md",
                     
                     "VariantName": "Model-A",
                     "VariantWeight": 1,
                     "InstanceCount": 1,
-                    "InstanceType": "ml.c5.xlarge",
+                    "InstanceType": "ml.m6g.xlarge",
                     "ModelServerWorkers": "4",
                     "ModelServerWorkers-Desc": "Please update this value according to InstanceType's vCPU",
 
@@ -46,15 +46,15 @@
                     "AutoScalingTargetInvocation": 50
                 },
                 {
-                    "ModelName":   "Model-B-20210102a",
+                    "ModelName":   "Model-B-20241218a",
                     "ModelS3Key":     "models/model-b/model",
-                    "ModelDockerImage": "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker",
+                    "ModelDockerImage": "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-sagemaker",
                     "ModelDockerImage-Desc": "SageMaker Prebuilt Docker Images: https://github.com/aws/deep-learning-containers/blob/master/available_images.md",
                     
                     "VariantName": "Model-B",
                     "VariantWeight": 1,
                     "InstanceCount": 1,
-                    "InstanceType": "ml.c5.large",
+                    "InstanceType": "ml.m6g.large",
                     "ModelServerWorkers": "2",
                     "ModelServerWorkers-Desc": "Please update this value according to InstanceType's vCPU",
 
@@ -65,7 +65,7 @@
                 }
             ],
 
-            "EndpointConfigName":   "TextClassification-20210102a",
+            "EndpointConfigName":   "TextClassification-20241218a",
             "BucketBaseName": "model-serving",
             "DataLoggingEnable": true,
             "DataLoggingS3Key": "data-capture",
@@ -98,8 +98,8 @@
         "CICDPipeline": {
             "Name": "CICDPipelineStack",
 
-            "RepositoryName": "",
-            "BranchName": ""
+            "RepositoryName": "Carma-tech",
+            "BranchName": "main"
         },
         "APITesting": {
             "Name": "APITestingStack",

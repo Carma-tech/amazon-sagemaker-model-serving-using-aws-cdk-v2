@@ -41,15 +41,18 @@ export class BaseStack extends cdk.Stack {
 
     protected createS3Bucket(baseName: string): s3.Bucket {
         const suffix: string = `${this.commonProps.env?.region}-${this.commonProps.env?.account?.substr(0, 4)}`
+        const timestamp = new Date().getTime();
 
         const s3Bucket = new s3.Bucket(this, baseName, {
-            bucketName: `${this.projectPrefix}-${baseName}-${suffix}`.toLowerCase().replace('_', '-'),
+            bucketName: `${this.projectPrefix}-${baseName}-${timestamp}`.toLowerCase().replace('_', '-'),
             versioned: false,
-            removalPolicy: cdk.RemovalPolicy.DESTROY // for prod, RETAIN is safe
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+            autoDeleteObjects: true
         });
 
         return s3Bucket;
     }
+
 
     protected putParameter(paramKey: string, paramValue: string): void {
         const paramKeyWithPrefix = `${this.projectPrefix}-${paramKey}`;
@@ -72,3 +75,4 @@ export class BaseStack extends cdk.Stack {
         );
     }
 }
+

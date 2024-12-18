@@ -43,33 +43,17 @@ const stackCommonProps: StackCommonProps = {
 
 const cdkApp = new cdk.App();
 
-// new ModelArchivingStack(cdkApp, stackCommonProps, appConfig.Stack.ModelArchiving);
+new ModelArchivingStack(cdkApp, stackCommonProps, appConfig.Stack.ModelArchiving);
 
-// new ModelServingStack(cdkApp, stackCommonProps, appConfig.Stack.ModelServing);
+new ModelServingStack(cdkApp, stackCommonProps, appConfig.Stack.ModelServing);
 
-// new APIHostingStack(cdkApp, stackCommonProps, appConfig.Stack.APIHosting);
+new APIHostingStack(cdkApp, stackCommonProps, appConfig.Stack.APIHosting);
 
-// new MonitorDashboardStack(cdkApp, stackCommonProps, appConfig.Stack.MonitorDashboard);
+new MonitorDashboardStack(cdkApp, stackCommonProps, appConfig.Stack.MonitorDashboard);
 
-// new CicdPipelineStack(cdkApp, stackCommonProps, appConfig.Stack.CICDPipeline);
+new CicdPipelineStack(cdkApp, stackCommonProps, appConfig.Stack.CICDPipeline);
 
-// new APITestingStack(cdkApp, stackCommonProps, appConfig.Stack.APITesting);
+new APITestingStack(cdkApp, stackCommonProps, appConfig.Stack.APITesting);
 
-// new TesterDashboardStack(cdkApp, stackCommonProps, appConfig.Stack.TesterDashboard);
+new TesterDashboardStack(cdkApp, stackCommonProps, appConfig.Stack.TesterDashboard);
 
-
-const modelArchivingStack = new ModelArchivingStack(cdkApp, stackCommonProps, appConfig.Stack.ModelArchiving);
-const modelServingStack = new ModelServingStack(cdkApp, stackCommonProps, appConfig.Stack.ModelServing);
-const apiHostingStack = new APIHostingStack(cdkApp, stackCommonProps, appConfig.Stack.APIHosting);
-const monitorDashboardStack = new MonitorDashboardStack(cdkApp, stackCommonProps, appConfig.Stack.MonitorDashboard);
-const apiTestingStack = new APITestingStack(cdkApp, stackCommonProps, appConfig.Stack.APITesting);
-const testerDashboardStack = new TesterDashboardStack(cdkApp, stackCommonProps, appConfig.Stack.TesterDashboard);
-const cicdPipelineStack = new CicdPipelineStack(cdkApp, stackCommonProps, appConfig.Stack.CICDPipeline);
-
-// Add dependencies
-modelServingStack.addDependency(modelArchivingStack);
-apiHostingStack.addDependency(modelServingStack);
-monitorDashboardStack.addDependency(apiHostingStack);
-apiTestingStack.addDependency(apiHostingStack);
-testerDashboardStack.addDependency(apiTestingStack);
-// cicdPipelineStack.addDependency(apiTestingStack);

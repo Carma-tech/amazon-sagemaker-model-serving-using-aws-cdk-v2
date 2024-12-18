@@ -24,7 +24,7 @@ In any directory, execute the following commands to train model and finally get 
 - 3: 'Business'
 - 4: 'Sci/Tech'
 
-If you are not ready for pytorch, please refer to this [installation guide](https://github.com/pytorch/text#installation). In this repository, pytorch version is 2.3.1, torchtext version is 0.18.0.
+If you are not ready for pytorch, please refer to this [installation guide](https://github.com/pytorch/text#installation). In this repository, pytorch version is 2.3.0, torchtext version is 0.18.0.
 
 ##### **Note**: You can skip this if you don't want to train model from scratch. Must check the models.tar.gz file in the ./models/model-a/model directory.
 
@@ -32,30 +32,41 @@ First install the following packages (Be aware to not mix the versions of pytorc
 ```bash
 python -m venv venv
 source venv/bin/activate
-pip install torch==2.3.* torchtext==0.18.*
+pip install torch==2.3.0 torchtext==0.18.0
 ```
-For further information checking the dependecies versions, please refer to [pytorch/text](https://github.com/pytorch/data).
+For further information checking the dependecies versions, please refer to [pytorch/text](https://github.com/pytorch/data) and [pytorch/data](https://github.com/pytorch/data#installation).
 ```bash
-pip install torchdata
+pip install torchdata==0.8.0 datasets 'portalocker>=2.0.0'
+```
+This is optional sometimes the code will ask to install the following packages.
+```bash
 pip install datasets transformers
 ```
 ### Training Model
 
-To train the model just run these commands outside of the project directory.
+To train the model just follow the following steps.
+
+1. Go to [https://github.com/pytorch/text/releases/tag/v0.18.0](https://github.com/pytorch/text/releases/tag/v0.18.0)
+2. Download the source code of this version because `git clone` command cloning the previous version `0.17.0`
+3. Extract the file and rename the folder `text-0.18.0` with `torchtext`
+4. Navigate to `cd torchtext/examples/text_classification/`
+5. First set the sparce value to False in `model.py` file line number `22`.
+6. Run the following commands: 
 ```bash
-git clone https://github.com/pytorch/text.git torchtext  
-cd torchtext/examples/text_classification/  
-mkdir .data  
-python3 train.py AG_NEWS --device cpu --save-model-path  model.pth --dictionary vocab.pth  
+mkdir .data
+python3 train.py AG_NEWS --device cpu --save-model-path  model.pth --dictionary vocab.pth
 ```
 
 By running the above commands the model artifaces will create in `torchtext/examples/text_classification/` directory. 
 
 Finally copy model script(***model.py***) and training outputs(***model.pth***, ***vocab.pth***) into ***models/model-a/src*** directory of this repository.
 
+You need run the following commands to copy the files to the correct directory or you can copy paste the files manually.
+
+These commands only work if you are in the correct directory like both directories (`torchtext` and `amazon-sageMaker-model-serving-using-aws-cdk-v2`) are in the same directory.
 ```bash
-cp ./model.py ../../../amazon-sageMaker-model-serving-using-aws-cdk/models/model-a/src/code/  
-cp ./model.pth ./vocab.pth ../../../amazon-sageMaker-model-serving-using-aws-cdk/models/model-a/src/  
+cp ./model.py ../../../amazon-sageMaker-model-serving-using-aws-cdk-v2/models/model-a/src/code/  
+cp ./model.pth ./vocab.pth ../../../amazon-sageMaker-model-serving-using-aws-cdk-v2/models/model-a/src/  
 ```
 
 This is a intermediate tree view in "models/model-a/src" directory.

@@ -20,8 +20,15 @@ import os
 import sys
 import json
 
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))+'/src/code')
-from src.code.inference import *
+
+# Dynamically add the absolute path of the 'src/code' directory to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+src_code_path = os.path.abspath(os.path.join(current_dir, '../src/code'))
+if src_code_path not in sys.path:
+    sys.path.append(src_code_path)
+
+# Import inference functions from src/code/inference.py
+from inference import *
 
 def test_simulation():
     # Prepare model
