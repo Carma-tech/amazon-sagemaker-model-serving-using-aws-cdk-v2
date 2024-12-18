@@ -141,6 +141,7 @@ export class APIHostingStack extends BaseStack {
             timeout: cdk.Duration.seconds(60 * 5),
             memorySize: 1024,
             role: role,
+            architecture: lambda.Architecture.ARM_64,
             environment: {
                 SAGEMAKER_ENDPOINT: props.endpointName,
             },
