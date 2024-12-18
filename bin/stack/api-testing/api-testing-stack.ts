@@ -94,6 +94,7 @@ export class APITestingStack extends BaseStack {
             memorySize: 256,
             role: props.role,
             retryAttempts: 0,
+            architecture: lambda.Architecture.ARM_64,
             environment: {
                 API_ENDPOINT: props.apiEndpoint,
                 PROJECT_NAME: this.commonProps.appConfig.Project.Name,
