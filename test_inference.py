@@ -5,7 +5,7 @@ import requests
 
 ########################### Batch Testing Script ###########################
 # Replace with your actual API Gateway endpoint
-api_url = "https://lizwynp710.execute-api.us-east-1.amazonaws.com/MLDemo/text"
+api_url = "https://k9vii2yok7.execute-api.us-east-1.amazonaws.com/MLDemo/text"
 
 # List of test sentences
 test_sentences = [
