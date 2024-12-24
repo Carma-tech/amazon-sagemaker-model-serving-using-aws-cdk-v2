@@ -22,7 +22,7 @@ import json
 import boto3
 import time
 
-profile = 'cdk-demo'
+profile = 'default'
 _endpoint_name = 'TextClassificationDemo-TextClassification-Endpoint'
 
 def set_profile(target):
