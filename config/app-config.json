@@ -2,116 +2,99 @@
     "Project": {
         "Name": "TextClassification",
         "Stage": "MLDemo",
-        "Account": "717918134056",
+        "Account": "127214197188",
         "Region": "us-east-1",
         "Profile": "default"
     },
-
     "Stack": {
+        "ModelTraining": {
+            "Name": "ModelTrainingStack",
+            "ModelName": "text-classification",
+            "Version": "v1",
+            "TrainingConfig": "config/model-training-config.yaml"
+        },
         "ModelArchiving": {
             "Name": "ModelArchivingStack",
-
             "BucketBaseName": "model-archiving",
             "ModelList": [
                 {
                     "ModelLocalPath": "models/model-a/model",
-                    "ModelS3Key":     "models/model-a/model"
-                },
-                {
-                    "ModelLocalPath": "models/model-a/model",
-                    "ModelS3Key":     "models/model-b/model"
+                    "ModelS3Key": "models/model-a/model"
                 }
             ]
         },
         "ModelServing": {
             "Name": "ModelServingStack",
-
             "ModelList": [
                 {
-                    "ModelName":   "Model-A-20241218a",
-                    "ModelS3Key":     "models/model-a/model",
-                    "ModelDockerImage": "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-sagemaker",
+                    "ModelName": "Model-A-20241218a",
+                    "ModelS3Key": "models/model-a/model",
+                    "ModelDockerImage": "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker",
                     "ModelDockerImage-Desc": "SageMaker Prebuilt Docker Images: https://github.com/aws/deep-learning-containers/blob/master/available_images.md",
-                    
                     "VariantName": "Model-A",
                     "VariantWeight": 1,
                     "InstanceCount": 1,
-                    "InstanceType": "ml.m6g.xlarge",
-                    "ModelServerWorkers": "4",
+                    "InstanceType": "ml.t2.medium",
+                    "ModelServerWorkers": "1",
                     "ModelServerWorkers-Desc": "Please update this value according to InstanceType's vCPU",
-
-                    "AutoScalingEnable": false,
-                    "AutoScalingMinCapacity": 2,
-                    "AutoScalingMaxCapacity": 4,
-                    "AutoScalingTargetInvocation": 50
-                },
-                {
-                    "ModelName":   "Model-B-20241218a",
-                    "ModelS3Key":     "models/model-b/model",
-                    "ModelDockerImage": "763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-sagemaker",
-                    "ModelDockerImage-Desc": "SageMaker Prebuilt Docker Images: https://github.com/aws/deep-learning-containers/blob/master/available_images.md",
-                    
-                    "VariantName": "Model-B",
-                    "VariantWeight": 1,
-                    "InstanceCount": 1,
-                    "InstanceType": "ml.m6g.large",
-                    "ModelServerWorkers": "2",
-                    "ModelServerWorkers-Desc": "Please update this value according to InstanceType's vCPU",
-
                     "AutoScalingEnable": false,
                     "AutoScalingMinCapacity": 1,
-                    "AutoScalingMaxCapacity": 3,
-                    "AutoScalingTargetInvocation": 100
+                    "AutoScalingMaxCapacity": 2,
+                    "AutoScalingTargetInvocation": 50
                 }
             ],
-
-            "EndpointConfigName":   "TextClassification-20241218a",
+            "EndpointConfigName": "TextClassification-20241218a",
             "BucketBaseName": "model-serving",
             "DataLoggingEnable": true,
             "DataLoggingS3Key": "data-capture",
             "DataLoggingPercentage": 30,
-
-            "EndpointName":      "TextClassification",
+            "EndpointName": "TextClassification",
             "Deploy": true
+        },
+        "ModelTransformJob": {
+            "Name": "ModelTransformJobStack",
+            "BucketBaseName": "model-transform",
+            "ModelList": [
+                {
+                    "ModelName": "Model-A-20241218a",
+                    "InstanceType": "m4.xlarge",
+                    "InputPath": "models/model-a/input",
+                    "OutputPath": "models/model-a/output"
+                }
+            ]
         },
         "APIHosting": {
             "Name": "APIHostingStack",
-
             "APIGatewayName": "APIS",
             "ResourceName": "text",
             "ResourceMethod": "POST",
-
             "LambdaFunctionName": "TextClassificationPredict"
         },
         "MonitorDashboard": {
             "Name": "MonitorDashboardStack",
-
             "DashboardName": "MonitorDashboard",
-
             "SubscriptionEmails": [],
-            "SubscriptionEmails-Example": ["abc@amazon.com"],
-
-            "ApiGatewayOverallCallThreshold": 100,
-            "ApiGatewayError4xxCallThreshold": 20,
-            "ApiGatewayError5xxCallThreshold": 20
+            "SubscriptionEmails-Example": [
+                "abc@amazon.com"
+            ],
+            "ApiGatewayOverallCallThreshold": 50,
+            "ApiGatewayError4xxCallThreshold": 10,
+            "ApiGatewayError5xxCallThreshold": 10
         },
         "CICDPipeline": {
             "Name": "CICDPipelineStack",
-
-            "RepositoryName": "Carma-tech",
-            "BranchName": "main"
+            "RepositoryName": "amazon-sagemaker-model-serving-using-aws-cdk-v2",
+            "BranchName": "add-model-training-stack",
+            "ConnectionArn": "arn:aws:codeconnections:us-east-1:717918134056:connection/7e4bcd1d-6aea-4dee-98e5-edf22f6cadb0"
         },
         "APITesting": {
             "Name": "APITestingStack",
-
             "SNSTopicName": "TestTrigger",
-
             "LambdaFunctionName": "TestTrigger",
             "TestClientCount": 10
         },
         "TesterDashboard": {
             "Name": "TesterDashboardStack",
-
             "DashboardName": "TesterDashboard"
         }
     }

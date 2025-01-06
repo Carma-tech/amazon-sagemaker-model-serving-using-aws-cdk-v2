@@ -1,31 +1,12 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- * SPDX-License-Identifier: MIT-0
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the "Software"), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 import * as cdk from 'aws-cdk-lib';
 import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
 import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions';
-import * as codecommit from 'aws-cdk-lib/aws-codecommit';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as iam from 'aws-cdk-lib/aws-iam';
-
-import { BaseStack, StackCommonProps } from '../../../lib/base/base-stack'
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
+import { BaseStack, StackCommonProps } from '../../../lib/base/base-stack';
 
 export class CicdPipelineStack extends BaseStack {
     private sourceOutput: codepipeline.Artifact;
@@ -33,106 +14,120 @@ export class CicdPipelineStack extends BaseStack {
     constructor(scope: Construct, props: StackCommonProps, stackConfig: any) {
         super(scope, stackConfig.Name, props, stackConfig);
 
-        const repositoryName: string = stackConfig.RepositoryName;
-        const branchName: string = stackConfig.BranchName;
+        const {
+            RepositoryName: repositoryName,
+            BranchName: branchName,
+            ConnectionArn: connectionArn,
+        } = stackConfig;
 
-        if (repositoryName.trim().length > 0
-            && branchName.trim().length > 0) {
-            const pipeline = new codepipeline.Pipeline(this, 'CICDPipeline', {
-                pipelineName: `${this.projectPrefix}-CICD-Pipeline`,
-            });
-
-            const sourceStage = pipeline.addStage({ stageName: 'Source' });
-            sourceStage.addAction(this.createSourceStageAction('CodeCommit', repositoryName, branchName));
-
-            const buildStage = pipeline.addStage({ stageName: 'BuildDeploy' });
-            buildStage.addAction(this.createBuildDeployStageAction('BuildDeploy', 'script/cicd/buildspec_cdk_deploy.yml'));
-        } else {
-            console.info("No CodeCommit repository, so don't create CodePipeline");
+        if (!repositoryName || !branchName || !connectionArn) {
+            throw new Error("RepositoryName, BranchName, or ConnectionArn is missing in the stack configuration.");
         }
-    }
 
-    private createSourceStageAction(actionName: string, repositoryName: string, branchName: string): codepipeline.IAction {
-        const repo = codecommit.Repository.fromRepositoryName(
+        // Define artifact bucket for pipeline
+        const artifactBucket = s3.Bucket.fromBucketName(
             this,
-            `${this.projectPrefix}-CodeCommit-Repository`,
-            repositoryName,
+            'ImportedArtifactBucket',
+            cdk.Fn.importValue('BuildArtifactBucketName')
         );
 
-        this.sourceOutput = new codepipeline.Artifact('SourceOutput')
-        const sourceAction = new codepipeline_actions.CodeCommitSourceAction({
-            actionName: actionName,
-            repository: repo,
-            output: this.sourceOutput,
-            branch: branchName
-        })
+        // Define the pipeline
+        const pipeline = new codepipeline.Pipeline(this, 'CICDPipeline', {
+            pipelineName: `${this.projectPrefix}-CICD-Pipeline`,
+            artifactBucket: artifactBucket,
+        });
 
-        return sourceAction;
+        // Add Source Stage
+        const sourceStage = pipeline.addStage({ stageName: 'Source' });
+        sourceStage.addAction(this.createSourceStageAction(repositoryName, branchName, connectionArn));
+
+        // Add Build Stage
+        const buildStage = pipeline.addStage({ stageName: 'Build' });
+        buildStage.addAction(this.createBuildStageAction('Build', 'script/cicd/buildspec_cdk_deploy.yml'));
     }
 
-    private createBuildDeployStageAction(actionName: string, buildSpecPath: string): codepipeline.IAction {
+    private createSourceStageAction(repositoryName: string, branchName: string, connectionArn: string): codepipeline.IAction {
+        // Define source artifact
+        this.sourceOutput = new codepipeline.Artifact('SourceOutput');
+
+        // Create CodeStar Connections Source Action
+        return new codepipeline_actions.CodeStarConnectionsSourceAction({
+            actionName: 'Get_Source',
+            owner: 'Carma-tech', // Update with your GitHub organization or repository owner
+            repo: repositoryName,
+            branch: branchName,
+            connectionArn: connectionArn,
+            output: this.sourceOutput,
+        });
+    }
+
+    private createBuildStageAction(actionName: string, buildSpecPath: string): codepipeline.IAction {
+        // Validate buildspec file existence
+        if (!buildSpecPath) {
+            throw new Error(`BuildSpec file path is missing.`);
+        }
+
+        // Define CodeBuild project
         const project = new codebuild.PipelineProject(this, `${actionName}-Project`, {
             environment: {
-                buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
+                buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
                 privileged: true,
-                computeType: codebuild.ComputeType.MEDIUM
+                computeType: codebuild.ComputeType.MEDIUM,
             },
             environmentVariables: {
-                PROJECT_PREFIX: { value: `${this.projectPrefix}` },
+                PROJECT_PREFIX: { value: this.projectPrefix },
+                REGION: { value: cdk.Stack.of(this).region },
+                ACCOUNT_ID: { value: cdk.Stack.of(this).account },
             },
             buildSpec: codebuild.BuildSpec.fromSourceFilename(buildSpecPath),
         });
 
-        const commonPolicy = this.getDeployCommonPolicy();
-        project.addToRolePolicy(commonPolicy);
-        const servicePolicy = this.getServiceSpecificPolicy();
-        project.addToRolePolicy(servicePolicy);
+        // Attach IAM policies to the project role
+        project.addToRolePolicy(this.getDeployCommonPolicy());
+        project.addToRolePolicy(this.getServiceSpecificPolicy());
 
+        // Define build artifact
         const buildOutput = new codepipeline.Artifact(`${actionName}BuildOutput`);
 
-        const buildAction = new codepipeline_actions.CodeBuildAction({
-            actionName: actionName,
+        // Create CodeBuild Action
+        return new codepipeline_actions.CodeBuildAction({
+            actionName,
             project,
             input: this.sourceOutput,
             outputs: [buildOutput],
-        })
-
-        return buildAction;
+        });
     }
 
     private getDeployCommonPolicy(): iam.PolicyStatement {
-        const statement = new iam.PolicyStatement();
-        statement.addActions(
-            "cloudformation:*",
-            "s3:*",
-            "lambda:*",
-            "ssm:*",
-            "iam:*",
-            "kms:*",
-            "events:*"
-        );
-        statement.addResources("*");
-
-        return statement;
+        return new iam.PolicyStatement({
+            actions: [
+                "cloudformation:*",
+                "s3:*",
+                "lambda:*",
+                "ssm:*",
+                "iam:*",
+                "kms:*",
+                "events:*",
+            ],
+            resources: ["*"],
+        });
     }
 
     private getServiceSpecificPolicy(): iam.PolicyStatement {
-        const statement = new iam.PolicyStatement();
-        statement.addActions(
-            "ec2:*",
-            "cloudwatch:*",
-            "sagemaker:*",
-            "ses:*",
-            "sns:*",
-            "application-autoscaling:*",
-            "apigateway:*",
-            "logs:*",
-            "lambda:*",
-            "elasticloadbalancingv2:*",
-            "elasticloadbalancing:*"
-        );
-        statement.addResources("*");
-
-        return statement;
+        return new iam.PolicyStatement({
+            actions: [
+                "ec2:*",
+                "cloudwatch:*",
+                "sagemaker:*",
+                "ses:*",
+                "sns:*",
+                "application-autoscaling:*",
+                "apigateway:*",
+                "logs:*",
+                "elasticloadbalancingv2:*",
+                "elasticloadbalancing:*",
+            ],
+            resources: ["*"],
+        });
     }
 }

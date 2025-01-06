@@ -1,0 +1,31 @@
+Training:
+  Parameters:
+    dataset: AG_NEWS
+    device: cpu
+    num_epochs: 5
+    batch_size: 16
+    embed_dim: 32
+    learning_rate: 4.0
+    save_model_path: model.pth
+    dictionary_path: vocab.pth
+    max_wait: 12000
+    max_run: 12000
+
+  Resources:
+    instance_type: ml.m4.large
+    instance_count: 1
+    volume_size_gb: 30
+    max_runtime_seconds: 3600
+
+  Container:
+    image: 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-sagemaker-v1.37
+
+  Output:
+    s3_path: models/{model_name}/{version}
+
+Monitoring:
+  alarms:
+    training_failure:
+      evaluation_periods: 1
+      threshold: 1
+      period_seconds: 300

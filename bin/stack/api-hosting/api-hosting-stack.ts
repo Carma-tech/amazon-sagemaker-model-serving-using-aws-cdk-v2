@@ -90,7 +90,7 @@ export class APIHostingStack extends BaseStack {
         });
         this.putParameter('predictLambdaFunctionArn', lambdaFunction.functionArn);
         const lambdaInferAlias = lambdaFunction.addAlias(this.commonProps.appConfig.Project.Stage, {
-            provisionedConcurrentExecutions: 1
+            // provisionedConcurrentExecutions: 1
           });
 
         const name = 'PredictLambdaIntegration';

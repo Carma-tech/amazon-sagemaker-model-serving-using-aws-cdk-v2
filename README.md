@@ -13,7 +13,7 @@ Other "Using AWS CDK" series can be found in:
 - [AWS Serverless Using AWS CDK](https://github.com/aws-samples/aws-serverless-using-aws-cdk)
 
 
-## **How to prepare ML model**
+## **How to prepare ML model Locally**
 
 Becuase this solution assumes that the model is previously provided by data scientists, ML model training and tuning is outside the scope of this solution. So we use the simple example model for the purpose of model serving. We will use Pytorch-based [text classification model](https://github.com/pytorch/text/tree/master/examples/text_classification) which is provided in [**pytorch/text**](https://github.com/pytorch/text).
 
@@ -32,17 +32,14 @@ First install the following packages (Be aware to not mix the versions of pytorc
 ```bash
 python -m venv venv
 source venv/bin/activate
-pip install torch==2.3.0 torchtext==0.18.0
 ```
 For further information checking the dependecies versions, please refer to [pytorch/text](https://github.com/pytorch/data) and [pytorch/data](https://github.com/pytorch/data#installation).
+
 ```bash
-pip install torchdata==0.8.0 datasets 'portalocker>=2.0.0'
+pip install -r requirements.txt
 ```
-This is optional sometimes the code will ask to install the following packages.
-```bash
-pip install datasets transformers
-```
-### Training Model
+
+### Training Model Locally
 
 To train the model just follow the following steps.
 

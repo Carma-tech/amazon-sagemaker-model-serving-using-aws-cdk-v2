@@ -67,6 +67,7 @@ interface ScalingProps {
     targetValue: number;
 }
 
+
 export class ModelServingStack extends BaseStack {
     static addDependency(ModelArchivingStack: ModelArchivingStack) {
         throw new Error('Method not implemented.');
@@ -131,6 +132,7 @@ export class ModelServingStack extends BaseStack {
                 });
             }
         }
+
     }
 
     private createModel(props: ModelProps): string {
@@ -246,3 +248,4 @@ export class ModelServingStack extends BaseStack {
         });
     }
 }
+    
