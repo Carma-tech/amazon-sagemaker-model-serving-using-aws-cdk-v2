@@ -24,5 +24,7 @@ cdk destroy *-MonitorDashboardStack --force --profile $PROFILE_NAME
 cdk destroy *-APIHostingStack --force --profile $PROFILE_NAME
 cdk destroy *-ModelServingStack --force --profile $PROFILE_NAME
 cdk destroy *-ModelArchivingStack --force --profile $PROFILE_NAME
+cdk destroy *-ModelTransformJobStack --force --profile $PROFILE_NAME
+cdk destroy *-ModelTrainingStack --force --profile $PROFILE_NAME
 echo .
 echo .

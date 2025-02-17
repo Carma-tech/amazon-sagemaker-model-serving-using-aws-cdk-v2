@@ -44,7 +44,7 @@ export class BaseStack extends cdk.Stack {
         const timestamp = new Date().getTime();
 
         const s3Bucket = new s3.Bucket(this, baseName, {
-            bucketName: `${this.projectPrefix}-${baseName}-${timestamp}`.toLowerCase().replace('_', '-'),
+            bucketName: `${this.projectPrefix}-${baseName}-${suffix}`.toLowerCase().replace('_', '-'),
             versioned: false,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
             autoDeleteObjects: true

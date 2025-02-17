@@ -15,6 +15,11 @@ cdk.out
 
 **/*.pyc
 .codes/**/__pycache__/
+venv
+env
 
 *.pth
 model.tar.gz
+*.DS_Store
+**/*.ipynb_checkpoints
+**/.DS_Store
