@@ -1,29 +1,8 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- * SPDX-License-Identifier: MIT-0
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the "Software"), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
- * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
- * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as sagemaker from 'aws-cdk-lib/aws-sagemaker';
-import * as applicationautoscaling from 'aws-cdk-lib/aws-applicationautoscaling';
-
-import { BaseStack, StackCommonProps } from '../../../lib/base/base-stack'
+import { BaseStack, StackCommonProps } from '../../../lib/base/base-stack';
 import { Construct } from 'constructs';
-import { ModelArchivingStack } from './model-archiving-stack';
 
 interface ModelProps {
     modelName: string;
@@ -37,21 +16,14 @@ interface ModelProps {
 interface VariantConfigProps {
     variantName: string;
     variantWeight: number;
-    instanceCount: number;
-    instanceType: string;
     modelName: string;
+    serverlessConfig: sagemaker.CfnEndpointConfig.ServerlessConfigProperty; // Use ServerlessConfigProperty
 }
 
 interface EndpointConfigProps {
     endpointConfigName: string;
     role: iam.IRole;
-
     variantConfigPropsList: VariantConfigProps[];
-
-    dataLoggingBucketName: string;
-    dataLoggingEnable: boolean;
-    dataLoggingS3Key: string;
-    dataLoggingPercentage: number;
 }
 
 interface EndpointProps {
@@ -59,20 +31,7 @@ interface EndpointProps {
     endpointConfigName: string;
 }
 
-interface ScalingProps {
-    endpointName: string;
-    variantName: string;
-    minCapacity: number;
-    maxCapacity: number;
-    targetValue: number;
-}
-
-
 export class ModelServingStack extends BaseStack {
-    static addDependency(ModelArchivingStack: ModelArchivingStack) {
-        throw new Error('Method not implemented.');
-    }
-
     constructor(scope: Construct, props: StackCommonProps, stackConfig: any) {
         super(scope, stackConfig.Name, props, stackConfig);
 
@@ -81,6 +40,7 @@ export class ModelServingStack extends BaseStack {
         const modelBucketName: string = this.getParameter('modelArchivingBucketName');
         let modelConfigList: VariantConfigProps[] = [];
         const modelList: any[] = stackConfig.ModelList;
+
         for (let model of modelList) {
             const modelName = this.createModel({
                 modelName: model.ModelName,
@@ -91,23 +51,23 @@ export class ModelServingStack extends BaseStack {
                 modelServerWorkers: model.ModelServerWorkers
             });
 
+            // Define the serverless configuration
+            const serverlessConfig: sagemaker.CfnEndpointConfig.ServerlessConfigProperty = {
+                maxConcurrency: model.ServerlessConfig.MaxConcurrency, // From config
+                memorySizeInMb: model.ServerlessConfig.MemorySizeInMb // From config
+            };
+
             modelConfigList.push({
                 modelName: modelName,
                 variantName: model.VariantName,
-                instanceCount: model.InstanceCount,
-                instanceType: model.InstanceType,
-                variantWeight: model.VariantWeight
+                variantWeight: model.VariantWeight,
+                serverlessConfig: serverlessConfig // Pass the serverless config
             });
         }
 
-        const loggingBucketName = this.createS3Bucket(stackConfig.BucketBaseName).bucketName;
         const endpointConfigName = this.createEndpointConfig({
             endpointConfigName: stackConfig.EndpointConfigName,
             variantConfigPropsList: modelConfigList,
-            dataLoggingBucketName: loggingBucketName,
-            dataLoggingEnable: stackConfig.DataLoggingEnable,
-            dataLoggingS3Key: stackConfig.DataLoggingS3Key,
-            dataLoggingPercentage: stackConfig.DataLoggingPercentage,
             role: role
         });
 
@@ -120,19 +80,6 @@ export class ModelServingStack extends BaseStack {
         }
 
         this.putParameter('sageMakerEndpointName', endpointName);
-
-        for (let model of modelList) {
-            if (model.AutoScalingEnable) {
-                this.scaleEndpoint({
-                    endpointName: endpointName,
-                    variantName: model.VariantName,
-                    minCapacity: model.AutoScalingMinCapacity,
-                    maxCapacity: model.AutoScalingMaxCapacity,
-                    targetValue: model.AutoScalingTargetInvocation
-                });
-            }
-        }
-
     }
 
     private createModel(props: ModelProps): string {
@@ -145,15 +92,14 @@ export class ModelServingStack extends BaseStack {
                     modelDataUrl: `s3://${props.modelBucketName}/${props.modelS3Key}/model.tar.gz`,
                     environment: {
                         SAGEMAKER_MODEL_SERVER_WORKERS: props.modelServerWorkers,
-                        SAGEMAKER_MODEL_SERVER_TIMEOUT: "3600",  // Increase timeout
+                        SAGEMAKER_MODEL_SERVER_TIMEOUT: "3600",
                         SAGEMAKER_DEFAULT_INVOCATIONS_TIMEOUT: "3600"
                     }
                 }
             ]
-        })
+        });
         return model.attrModelName;
     }
-
 
     private createEndpointConfig(props: EndpointConfigProps): string {
         const endpointConfig = new sagemaker.CfnEndpointConfig(this, `${props.endpointConfigName}-Config`, {
@@ -163,16 +109,10 @@ export class ModelServingStack extends BaseStack {
                     modelName: modelConfig.modelName,
                     variantName: modelConfig.variantName,
                     initialVariantWeight: modelConfig.variantWeight,
-                    initialInstanceCount: modelConfig.instanceCount,
-                    instanceType: modelConfig.instanceType
-                }
-            }),
-            dataCaptureConfig: {
-                captureOptions: [{ captureMode: 'Input' }, { captureMode: 'Output' }],
-                enableCapture: props.dataLoggingEnable,
-                destinationS3Uri: `s3://${props.dataLoggingBucketName}/${props.dataLoggingS3Key}`,
-                initialSamplingPercentage: props.dataLoggingPercentage
-            }
+                    serverlessConfig: modelConfig.serverlessConfig // Use the serverless config
+                };
+            })
+            // Remove dataCaptureConfig for serverless endpoints
         });
 
         return endpointConfig.attrEndpointConfigName;
@@ -201,11 +141,11 @@ export class ModelServingStack extends BaseStack {
                         new iam.PolicyStatement({
                             effect: iam.Effect.ALLOW,
                             actions: [
-                                'cloudwatch:PutMetricData',
-                                'logs:CreateLogStream',
-                                'logs:PutLogEvents',
-                                'logs:CreateLogGroup',
-                                'logs:DescribeLogStreams',
+                                "cloudwatch:PutMetricData",
+                                "logs:CreateLogStream",
+                                "logs:PutLogEvents",
+                                "logs:CreateLogGroup",
+                                "logs:DescribeLogStreams",
                                 "ec2:CreateNetworkInterface",
                                 "ec2:CreateNetworkInterfacePermission",
                                 "ec2:DeleteNetworkInterface",
@@ -227,25 +167,4 @@ export class ModelServingStack extends BaseStack {
 
         return role;
     }
-
-    private scaleEndpoint(props: ScalingProps) {
-        const baseName = `${props.endpointName}-${props.variantName}`;
-
-        const target = new applicationautoscaling.ScalableTarget(this, `${baseName}-ScalableTarget`, {
-            serviceNamespace: applicationautoscaling.ServiceNamespace.SAGEMAKER,
-            minCapacity: props.minCapacity,
-            maxCapacity: props.maxCapacity,
-            resourceId: `endpoint/${props.endpointName}/variant/${props.variantName}`,
-            scalableDimension: 'sagemaker:variant:DesiredInstanceCount',
-        });
-
-        target.scaleToTrackMetric('INVOCATIONS_PER_INSTANCE', {
-            policyName: `${baseName}-SageMakerAutoScalingPolicy`,
-            targetValue: props.targetValue,
-            scaleInCooldown: cdk.Duration.minutes(2),
-            scaleOutCooldown: cdk.Duration.minutes(2),
-            predefinedMetric: applicationautoscaling.PredefinedMetric.SAGEMAKER_VARIANT_INVOCATIONS_PER_INSTANCE,
-        });
-    }
 }
-    

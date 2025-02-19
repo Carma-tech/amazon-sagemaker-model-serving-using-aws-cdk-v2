@@ -2,9 +2,9 @@
     "Project": {
         "Name": "TextClassification",
         "Stage": "MLDemo",
-        "Account": "127214197188",
+        "Account": "266735847556",
         "Region": "us-east-1",
-        "Profile": "default"
+        "Profile": "aabid"
     },
     "Stack": {
         "ModelTraining": {
@@ -33,8 +33,10 @@
                     "ModelDockerImage-Desc": "SageMaker Prebuilt Docker Images: https://github.com/aws/deep-learning-containers/blob/master/available_images.md",
                     "VariantName": "Model-A",
                     "VariantWeight": 1,
-                    "InstanceCount": 1,
-                    "InstanceType": "ml.t2.medium",
+                    "ServerlessConfig": {
+                        "MaxConcurrency": 50,
+                        "MemorySizeInMb": 2048
+                    },
                     "ModelServerWorkers": "1",
                     "ModelServerWorkers-Desc": "Please update this value according to InstanceType's vCPU",
                     "AutoScalingEnable": false,
