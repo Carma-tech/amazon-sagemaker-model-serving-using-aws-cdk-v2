@@ -21,7 +21,7 @@ export class GlueJobStack extends cdk.Stack {
 
         // Deploy scripts to Assets
         new BucketDeployment(this, 'DeployScript', {
-            sources: [Source.asset(path.join(__dirname, '../../../codes/glue_job'))],
+            sources: [Source.asset(path.join(__dirname, '../../../notebook/glue_job'))],
             destinationBucket: bucket,
             destinationKeyPrefix: 'scripts'
         });
