@@ -17,11 +17,13 @@ echo .
 echo .
 
 echo ==--------DeployStacksStepByStep---------==
+# cdk deploy *-ModelTrainingStack --require-approval never --profile $PROFILE_NAME 
 cdk deploy *-ModelArchivingStack --require-approval never --profile $PROFILE_NAME
 cdk deploy *-ModelServingStack --require-approval never --profile $PROFILE_NAME
-cdk deploy *-APIHostingStack --require-approval never --profile $PROFILE_NAME
-cdk deploy *-MonitorDashboardStack --require-approval never --profile $PROFILE_NAME
-cdk deploy *-CICDPipelineStack --require-approval never --profile $PROFILE_NAME
+cdk deploy *-ModelTransformJobStack --require-approval never --profile $PROFILE_NAME
+# cdk deploy *-APIHostingStack --require-approval never --profile $PROFILE_NAME
+# cdk deploy *-MonitorDashboardStack --require-approval never --profile $PROFILE_NAME
+# cdk deploy *-CICDPipelineStack --require-approval never --profile $PROFILE_NAME
 cdk deploy *-APITestingStack --require-approval never --profile $PROFILE_NAME
 cdk deploy *-TesterDashboardStack --require-approval never --profile $PROFILE_NAME
 echo .

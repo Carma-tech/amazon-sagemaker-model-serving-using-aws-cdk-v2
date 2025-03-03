@@ -5,7 +5,7 @@ import requests
 
 ########################### Batch Testing Script ###########################
 # Replace with your actual API Gateway endpoint
-api_url = "https://k9vii2yok7.execute-api.us-east-1.amazonaws.com/MLDemo/text"
+api_url = "https://1y9whl8565.execute-api.us-east-1.amazonaws.com/MLDemo/text"
 
 # List of test sentences
 test_sentences = [
@@ -24,21 +24,6 @@ for i, payload in enumerate(test_sentences):
     else:
         print(f"Test {i+1} Error: {response.status_code}, {response.text}")
 
-
-###################### This method just for a single input data ###############################
-# # Replace with your actual API Gateway endpoint
-# api_url = "https://lizwynp710.execute-api.us-east-1.amazonaws.com/MLDemo/text"
-
-# # Request payload
-# payload = {
-#     "sentence": "The new president has called for an emergency conference for international cooperation."
-# }
-
-# # Send POST request
-# response = requests.post(api_url, json=payload)
-
-# # Print response
-# if response.status_code == 200:
-#     print("Response:", response.json())
-# else:
-#     print(f"Error: {response.status_code}, {response.text}")
+# from sagemaker import image_uris
+# container = image_uris.retrieve(framework='blazingtext', region='us-east-1')
+# print(container) # 811284229777.dkr.ecr.us-east-1.amazonaws.com/blazingtext:1
